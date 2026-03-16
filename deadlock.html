@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deadlock Detective | Interactive Simulator</title>
     <style>
-        /* CSS Variables for Dynamic Themes */
+        
         :root {
-            /* Default: Dark Mode Variables */
+           
             --bg: #0f172a;
             --card: #1e293b;
             --text: #f8fafc;
@@ -20,7 +20,7 @@
             --danger-bg: #991b1b;
         }
 
-        /* Light Mode Overrides */
+        
         [data-theme="light"] {
             --bg: #f1f5f9;
             --card: white;
@@ -46,10 +46,10 @@
             align-items: center;
             min-height: 100vh;
             padding: 20px;
-            transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
+            transition: background-color 0.3s ease, color 0.3s ease; 
         }
 
-        /* Theme Switcher Button Style */
+        
         .theme-switch-wrapper {
             position: absolute;
             top: 20px;
@@ -95,7 +95,7 @@
         input:checked + .slider { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
         input:checked + .slider:before { transform: translateX(26px); }
 
-        /* Rest of existing styles, updated with variables */
+        
         #welcome-screen { text-align: center; margin-top: 10vh; }
 
         .btn {
@@ -119,7 +119,7 @@
             padding: 20px;
             border-radius: 15px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Lighter shadow for light mode */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
             transition: background-color 0.3s ease;
         }
 
@@ -142,10 +142,10 @@
             text-align: center;
             display: none;
             animation: slideUp 0.5s ease;
-            color: var(--btn-text); /* Default result text color */
+            color: var(--btn-text); 
         }
 
-        /* Adjusting result text colors for Light Mode */
+        
         [data-theme="light"] #result[style*="background: var(--success-bg)"] { color: var(--success-text); }
         [data-theme="light"] #result[style*="background: var(--danger-bg)"] { color: var(--danger-text); }
 
@@ -196,12 +196,12 @@
     </div>
 
     <script>
-        // --- Theme Switching Logic ---
+       
         const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
         const currentTheme = localStorage.getItem('theme');
         const themeIcon = document.getElementById('theme-icon');
 
-        // Check Local Storage for saved theme
+        
         if (currentTheme) {
             document.documentElement.setAttribute('data-theme', currentTheme);
             if (currentTheme === 'light') {
@@ -298,7 +298,7 @@
             const resDiv = document.getElementById('result');
             resDiv.style.display = "block";
             
-            // Output display using CSS variables for colors
+           
             if(safeSeq.length === P) {
                 resDiv.style.background = "var(--success-bg)";
                 resDiv.innerHTML = `✅ SAFE STATE FOUND!<br>Sequence: ${safeSeq.map(v => "P"+v).join(" → ")}`;
