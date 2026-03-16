@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deadlock Detective | Interactive Simulator</title>
+    <style>
+        /* CSS Variables for Dynamic Themes */
+        :root {
+            /* Default: Dark Mode Variables */
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --input-bg: #334155;
+            --border: #475569;
+            --primary: #8b5cf6;
+            --secondary: #ec4899;
+            --btn-text: white;
+            --success-bg: #065f46;
+            --danger-bg: #991b1b;
+        }
+
+        /* Light Mode Overrides */
+        [data-theme="light"] {
+            --bg: #f1f5f9;
+            --card: white;
+            --text: #0f172a;
+            --input-bg: white;
+            --border: #cbd5e1;
+            --primary: #6d28d9;
+            --secondary: #db2777;
+            --btn-text: white;
+            --success-bg: #a7f3d0;
+            --success-text: #065f46;
+            --danger-bg: #fecaca;
+            --danger-text: #991b1b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
+        }
+
+        /* Theme Switcher Button Style */
+        .theme-switch-wrapper {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .theme-switch {
+            display: inline-block;
+            height: 24px;
+            position: relative;
+            width: 50px;
+        }
+
+        .theme-switch input { display: none; }
+
+        .slider {
+            background-color: #ccc;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            background-color: white;
+            bottom: 4px;
+            content: "";
+            height: 16px;
+            left: 4px;
+            position: absolute;
+            transition: .4s;
+            width: 16px;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        /* Rest of existing styles, updated with variables */
+        #welcome-screen { text-align: center; margin-top: 10vh; }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--btn-text);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            margin-top: 20px;
+        }
+
+        .btn:hover { transform: scale(1.05); opacity: 0.9; }
+
+        #main-app { display: none; width: 100%; max-width: 800px; }
+
+        .matrix-section {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Lighter shadow for light mode */
+            transition: background-color 0.3s ease;
+        }
+
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        input[type="number"] {
+            width: 50px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+            text-align: center;
+            transition: 0.3s ease;
+        }
+
+        .result-area {
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            text-align: center;
+            display: none;
+            animation: slideUp 0.5s ease;
+            color: var(--btn-text); /* Default result text color */
+        }
+
+        /* Adjusting result text colors for Light Mode */
+        [data-theme="light"] #result[style*="background: var(--success-bg)"] { color: var(--success-text); }
+        [data-theme="light"] #result[style*="background: var(--danger-bg)"] { color: var(--danger-text); }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="theme-switch-wrapper">
+        <label class="theme-switch" for="checkbox">
+            <input type="checkbox" id="checkbox" />
+            <div class="slider"></div>
+        </label>
+        <span id="theme-icon">🌙</span> </div>
+
+    <div id="welcome-screen">
+        <h1 style="font-size: 3rem; margin-bottom: 10px;">🕵️‍♂️ Deadlock Detective</h1>
+        <p style="color: #94a3b8;">Interactive Banker's Algorithm Simulator</p>
+        <button class="btn" onclick="initApp()">Get Started</button>
+    </div>
+
+    <div id="main-app">
+        <div class="matrix-section">
+            <h3>Step 1: Setup Parameters</h3>
+            <label>Processes: </label> <input type="number" id="P" value="3" onchange="generateTables()">
+            <label> Resources: </label> <input type="number" id="R" value="3" onchange="generateTables()">
+        </div>
+
+        <div class="matrix-section">
+            <h3>Step 2: Enter Matrices</h3>
+            <div style="display: flex; justify-content: space-between; gap: 10px; overflow-x: auto;">
+                <div>
+                    <h4>Allocation</h4>
+                    <table id="allocTable"></table>
+                </div>
+                <div>
+                    <h4>Max Demand</h4>
+                    <table id="maxTable"></table>
+                </div>
+            </div>
+            <h4>Available Resources</h4>
+            <div id="availRow"></div>
+        </div>
+
+        <button class="btn" style="width: 100%;" onclick="calculate()">Analyze System State</button>
+
+        <div id="result" class="result-area"></div>
+    </div>
+
+    <script>
+        // --- Theme Switching Logic ---
+        const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+        const currentTheme = localStorage.getItem('theme');
+        const themeIcon = document.getElementById('theme-icon');
+
+        // Check Local Storage for saved theme
+        if (currentTheme) {
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            if (currentTheme === 'light') {
+                toggleSwitch.checked = true;
+                themeIcon.textContent = '☀️';
+            }
+        }
+
+        function switchTheme(e) {
+            if (e.target.checked) {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+                themeIcon.textContent = '☀️';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                themeIcon.textContent = '🌙';
+            }
+        }
+
+        toggleSwitch.addEventListener('change', switchTheme, false);
+
+
+        // --- Your Original App Logic ---
+        function initApp() {
+            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            generateTables();
+        }
+
+        function generateTables() {
+            const P = document.getElementById('P').value;
+            const R = document.getElementById('R').value;
+            let allocHTML = "", maxHTML = "", availHTML = "";
+            
+            for(let i=0; i<P; i++) {
+                allocHTML += `<tr><td>P${i}</td>`;
+                maxHTML += `<tr><td>P${i}</td>`;
+                for(let j=0; j<R; j++) {
+                    allocHTML += `<td><input type="number" id="a${i}${j}" value="0"></td>`;
+                    maxHTML += `<td><input type="number" id="m${i}${j}" value="0"></td>`;
+                }
+                allocHTML += `</tr>`;
+                maxHTML += `</tr>`;
+            }
+            
+            for(let j=0; j<R; j++) {
+                availHTML += `<input type="number" id="av${j}" value="0" style="margin-right:10px;">`;
+            }
+
+            document.getElementById('allocTable').innerHTML = allocHTML;
+            document.getElementById('maxTable').innerHTML = maxHTML;
+            document.getElementById('availRow').innerHTML = availHTML;
+        }
+
+        function calculate() {
+            const P = parseInt(document.getElementById('P').value);
+            const R = parseInt(document.getElementById('R').value);
+            let alloc = [], max = [], avail = [], need = [];
+            
+            for(let i=0; i<P; i++) {
+                alloc[i] = []; max[i] = []; need[i] = [];
+                for(let j=0; j<R; j++) {
+                    alloc[i][j] = parseInt(document.getElementById(`a${i}${j}`).value);
+                    max[i][j] = parseInt(document.getElementById(`m${i}${j}`).value);
+                    need[i][j] = max[i][j] - alloc[i][j];
+                }
+            }
+            for(let j=0; j<R; j++) avail[j] = parseInt(document.getElementById(`av${j}`).value);
+
+            let work = [...avail];
+            let finish = new Array(P).fill(false);
+            let safeSeq = [];
+
+            for (let k = 0; k < P; k++) {
+                for (let i = 0; i < P; i++) {
+                    if (!finish[i]) {
+                        let canGrant = true;
+                        for (let j = 0; j < R; j++) {
+                            if (need[i][j] > work[j]) {
+                                canGrant = false;
+                                break;
+                            }
+                        }
+                        if (canGrant) {
+                            for (let j = 0; j < R; j++) work[j] += alloc[i][j];
+                            safeSeq.push(i);
+                            finish[i] = true;
+                        }
+                    }
+                }
+            }
+
+            const resDiv = document.getElementById('result');
+            resDiv.style.display = "block";
+            
+            // Output display using CSS variables for colors
+            if(safeSeq.length === P) {
+                resDiv.style.background = "var(--success-bg)";
+                resDiv.innerHTML = `✅ SAFE STATE FOUND!<br>Sequence: ${safeSeq.map(v => "P"+v).join(" → ")}`;
+            } else {
+                resDiv.style.background = "var(--danger-bg)";
+                resDiv.innerHTML = `❌ UNSAFE STATE!<br>Potential Deadlock Detected.`;
+            }
+        }
+    </script>
+</body>
+</html>
